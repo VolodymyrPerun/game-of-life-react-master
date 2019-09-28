@@ -1,26 +1,27 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import {BootstrapToolbar, MenuItem, DropdownButton, ButtonToolbar} from 'react-bootstrap'
+import {ButtonToolbar, DropdownButton,DropdownItem} from 'react-bootstrap';
 
 class Box extends React.Component {
     selectBox = () => {
         this.props.selectBox(this.props.row, this.props.col);
-    };
+    }
 
     render() {
         return (
-            <div className={this.props.boxClass}
-                 id={this.props.id}
-                 onClick={this.selectBox}
+            <div
+                className={this.props.boxClass}
+                id={this.props.id}
+                onClick={this.selectBox}
             />
-        )
+        );
     }
 }
 
 class Grid extends React.Component {
     render() {
-        const width = (this.props.cols * 16) + 1;
+        const width = (this.props.cols * 14);
         var rowsArr = [];
 
         var boxClass = "";
@@ -38,39 +39,44 @@ class Grid extends React.Component {
                         col={j}
                         selectBox={this.props.selectBox}
                     />
-                )
+                );
             }
         }
+
         return (
             <div className="grid" style={{width: width}}>
                 {rowsArr}
             </div>
-        )
+        );
     }
 }
 
 class Buttons extends React.Component {
 
+    handleSelect = (evt) => {
+        this.props.gridSize(evt);
+    }
+
     render() {
         return (
             <div className="center">
                 <ButtonToolbar>
-                    <button className="btn btn-default" onClick={this.props.playButton}>
+                    <button className="btn btn-default bg-white mr-1" onClick={this.props.playButton}>
                         Play
                     </button>
-                    <button className="btn btn-default" onClick={this.props.pauseButton}>
+                    <button className="btn btn-default bg-white mr-1" onClick={this.props.pauseButton}>
                         Pause
                     </button>
-                    <button className="btn btn-default" onClick={this.props.clear}>
+                    <button className="btn btn-default bg-white mr-1" onClick={this.props.clear}>
                         Clear
                     </button>
-                    <button className="btn btn-default" onClick={this.props.slow}>
+                    <button className="btn btn-default bg-white mr-1" onClick={this.props.slow}>
                         Slow
                     </button>
-                    <button className="btn btn-default" onClick={this.props.fast}>
+                    <button className="btn btn-default bg-white mr-1" onClick={this.props.fast}>
                         Fast
                     </button>
-                    <button className="btn btn-default" onClick={this.props.seed}>
+                    <button className="btn btn-default bg-white mr-1" onClick={this.props.seed}>
                         Seed
                     </button>
                     <DropdownButton
@@ -78,9 +84,9 @@ class Buttons extends React.Component {
                         id="size-menu"
                         onSelect={this.handleSelect}
                     >
-                        <MenuItem eventKey="1">20x10</MenuItem>
-                        <MenuItem eventKey="2">50x30</MenuItem>
-                        <MenuItem eventKey="3">70x50</MenuItem>
+                        <DropdownItem eventKey="1">20x10</DropdownItem>
+                        <DropdownItem eventKey="2">50x30</DropdownItem>
+                        <DropdownItem eventKey="3">70x50</DropdownItem>
                     </DropdownButton>
                 </ButtonToolbar>
             </div>
@@ -89,7 +95,6 @@ class Buttons extends React.Component {
 }
 
 class Main extends React.Component {
-
     constructor() {
         super();
         this.speed = 100;
@@ -107,8 +112,8 @@ class Main extends React.Component {
         gridCopy[row][col] = !gridCopy[row][col];
         this.setState({
             gridFull: gridCopy
-        })
-    };
+        });
+    }
 
     seed = () => {
         let gridCopy = arrayClone(this.state.gridFull);
@@ -122,17 +127,51 @@ class Main extends React.Component {
         this.setState({
             gridFull: gridCopy
         });
-    };
-    playButton = () => {
-        this.intervalId = setInterval(this.play, this.props.speed);
     }
 
-    pausedButton = () => {
+    playButton = () => {
+        clearInterval(this.intervalId);
+        this.intervalId = setInterval(this.play, this.speed);
+    }
+
+    pauseButton = () => {
         clearInterval(this.intervalId);
     }
-    play = () => {
-        let g = this.state.gridFull;
-        let g2 = arrayClone(this.state.gridFull);
+
+    slow = () => {
+        this.speed = 1000;
+        this.playButton();
+    }
+
+    fast = () => {
+        this.speed = 100;
+        this.playButton();
+    }
+
+    clear = () => {
+        var grid = Array(this.rows).fill().map(() => Array(this.cols).fill(false));
+        this.setState({
+            gridFull: grid,
+            generation: 0
+        });
+    }
+
+    gridSize = (size) => {
+        switch (size) {
+            case "1":
+                this.cols = 20;
+                this.rows = 10;
+                break;
+            case "2":
+                this.cols = 50;
+                this.rows = 30;
+                break;
+            default:
+                this.cols = 70;
+                this.rows = 50;
+        }
+        this.clear();
+
     }
 
     play = () => {
@@ -169,7 +208,7 @@ class Main extends React.Component {
     render() {
         return (
             <div>
-                <h1>The Game Of Life</h1>
+                <h1>The Game of Life</h1>
                 <Buttons
                     playButton={this.playButton}
                     pauseButton={this.pauseButton}
@@ -178,7 +217,6 @@ class Main extends React.Component {
                     clear={this.clear}
                     seed={this.seed}
                     gridSize={this.gridSize}
-
                 />
                 <Grid
                     gridFull={this.state.gridFull}
@@ -186,11 +224,9 @@ class Main extends React.Component {
                     cols={this.cols}
                     selectBox={this.selectBox}
                 />
-                <h2>
-                    Generation: {this.state.generation}
-                </h2>
+                <h2>Generations: {this.state.generation}</h2>
             </div>
-        )
+        );
     }
 }
 
@@ -198,6 +234,4 @@ function arrayClone(arr) {
     return JSON.parse(JSON.stringify(arr));
 }
 
-ReactDOM.render(<Main/>, document.getElementById('root'));
-
-
+ReactDOM.render(<Main />, document.getElementById('root'));
